@@ -57,12 +57,44 @@ _format_help() {
   fi
 }
 
+# Formats GitHub API output.
+#
+# $1 - format (plain, tsv, csv, or json)
+_format_output() {
+  local format="$1"
+
+  case "$format" in
+    plain)
+      column -t -s$'\t'
+      ;;
+    *)
+      cat
+      ;;
+  esac
+}
+
+# Run `gh` commands, checking first if the tool is installed.
+#
+# $@ - args to pass to `gh`
+_gh() {
+  if ! type gh &> /dev/null; then
+    _warn "error: \`gh' not found. Install from https://cli.github.com"
+    return 127
+  fi
+
+  gh "$@"
+}
+
 # Main program
 main() {
   local cmd="${1:-}"
   shift
 
   case "$cmd" in
+    user-list)
+      "$cmd" "$@"
+      return $?
+      ;;
     -V | --version | version)
       echo "$(_program_name) v$VERSION"
       echo "https://github.com/a2hosting/gh-orgtools"
@@ -128,6 +160,86 @@ help() {
       }
     }
     ' "$0" | _format_help
+}
+
+# Usage: gh orgtools user-list [--org=ORG]
+#
+# NAME
+#   gh orgtools user-list -- list users in the organization
+#
+# SYNOPSIS
+#   gh orgtools user-list
+#
+# DESCRIPTION
+#   Lists the organization's users.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+#   --format=FORMAT
+#     Output format, one of plain, tsv, csv, or json. Default: plain.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/orgs#list-organization-members
+user-list() {
+  local org query format=plain
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) user-list: invalid option \`$1'" >&2
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  case "$format" in
+    plain|tsv)
+      query='["Login", "ID"], (.[] | [.login, .id]) | @tsv'
+      ;;
+    csv)
+      query='["Login", "ID"], (.[] | [.login, .id]) | @csv'
+      ;;
+    json)
+      query='[.login, .id]'
+      ;;
+    "")
+      _warn "missing format \`$format'"
+      return 1
+      ;;
+    *)
+      _warn "invalid format \`$format'"
+      return 1
+      ;;
+  esac
+
+  _gh api --paginate --jq "$query" "orgs/$org/members" |
+    _format_output "$format"
 }
 
 # If no arg was passed, show the help text
