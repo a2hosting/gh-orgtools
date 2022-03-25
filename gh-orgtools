@@ -207,7 +207,7 @@ help() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/repos#list-organization-repositories
 repo-list() {
-  local org query format=plain
+  local org query output=() format=plain
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -223,8 +223,12 @@ repo-list() {
         org="${1#*=}"
         shift
         ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
       -?*)
-        _warn "$(_program_name) repo-list: invalid option \`$1'" >&2
+        _warn "$(_program_name) repo-list: invalid option \`$1'"
         return 1
         ;;
       *)
@@ -238,35 +242,18 @@ repo-list() {
     return 1
   fi
 
-  case "$format" in
-    plain|tsv)
-      # query='["Name", "URL"], (.[] | [.name, .html_url]) | @tsv'
-      query='.[] | [.name, .html_url] | @tsv'
-      ;;
-    csv)
-      # query='["Name", "URL"], (.[] | [.name, .html_url]) | @csv'
-      query='.[] | [.name, .html_url] | @csv'
-      ;;
-    json)
-      query='.'
-      ;;
-    "")
-      _warn "missing format \`$format'"
-      return 1
-      ;;
-    *)
-      _warn "invalid format \`$format'"
-      return 1
-      ;;
-  esac
-
-  # doesn't work, each page gets a header :(
-  # query="\"Name\tURL\n\", (.[] | [.name, .html_url] | @tsv)"
+  output+=("name")
 
   query='.[].name'
 
-  _gh api --paginate --jq "$query" "orgs/$org/repos" |
-    _format_output "$format"
+  while read -r line; do
+    output+=("$line")
+  done < <(_gh api --paginate --jq "$query" "orgs/$org/repos")
+
+  {
+    printf "%s\n" "${output[@]}"
+    echo
+  } | _format_output "$format"
 }
 
 # Usage: gh orgtools user-list [--org=ORG]
@@ -319,7 +306,7 @@ user-list() {
         shift
         ;;
       -?*)
-        _warn "$(_program_name) user-list: invalid option \`$1'" >&2
+        _warn "$(_program_name) user-list: invalid option \`$1'"
         return 1
         ;;
       *)
