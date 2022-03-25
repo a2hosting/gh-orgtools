@@ -1,20 +1,44 @@
 #!/usr/bin/env bash
-# Usage: gh orgtools <command> [options]
+# Usage: gh orgtools <COMMAND> [OPTIONS]
 #
 # NAME
 #   gh orgtools -- GitHub CLI extension to help work with your organization
 #
 # SYNOPSIS
-#   gh orgtools <command> [options]
+#   gh orgtools <COMMAND> [OPTIONS]
 #
 # DESCRIPTION
 #   FIXME
 #
-# OPTIONS
-#   FIXME
+# COMMANDS
+#   help                   - prints documentation gh-orgtools and its commands
+#   repo-list              - list an organizations repositories
+#   repo-create            - create a new repository in the organization
+#   repo-grant-team-access - grant an organization team access to the given repoitories
+#   user-list              - list users in the organization
+#   user-invite            - invite users to join the organization
+#   user-remove            - remove users from the organization
+#   user-get               - get information about the given user
+#   team-list              - list the organization's teams
+#   team-get               - get information about the given team
+#
+# GLOBAL OPTIONS
+#   -V, --version
+#     Print version information.
+#
+#   -h, --help
+#     Show help text for the main gh-orgtools command.
+#
+# REPORTING BUGS
+#   Issues can be reported on GitHub:
+#
+#   https://github.com/a2hosting/gh-orgtools/issues
+#
+# LICENSE
+#   MIT License
 #
 # SEE ALSO
-#   FIXME
+#   gh(1)
 
 # Enable debug mode
 if [[ "$DEBUG" ]]; then
@@ -118,7 +142,7 @@ main() {
 # Usage: gh orgtools help [COMMAND]
 #
 # NAME
-#   gh orgtools help - show help for gh-orgtools and its commands
+#   gh orgtools help - prints documentation for gh-orgtools and its commands
 #
 # SYNOPSIS
 #   gh orgtools help [COMMAND]
