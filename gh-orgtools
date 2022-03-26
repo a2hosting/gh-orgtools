@@ -107,7 +107,7 @@ _format_output() {
 # $@ - args to pass to `gh`
 _gh() {
   if ! type gh &> /dev/null; then
-    _warn "error: \`gh' not found. Install from https://cli.github.com"
+    _warn "error: \`gh' not found. Install from https://cli.github.com (\`brew install gh' on macOS)."
     return 127
   fi
 
