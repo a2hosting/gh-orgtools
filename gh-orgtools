@@ -20,7 +20,7 @@
 #   user-remove            - remove users from the organization
 #   user-get               - get information about the given user
 #   team-list              - list the organization's teams
-#   team-get               - get information about the given team
+#   team-get-id            - get GitHub ID for the given team
 #
 # GLOBAL OPTIONS
 #   -V, --version
@@ -115,7 +115,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list|user-invite|user-remove)
+    repo-list|user-list|user-invite|user-remove|team-list|team-get-id)
       "$cmd" "$@"
       return $?
       ;;
@@ -497,6 +497,134 @@ user-remove() {
   user="$1"
 
   echo _gh api -X DELETE "orgs/$org/members/$user"
+}
+
+# Usage: gh orgtools team-list [--org=ORG]
+#
+# NAME
+#   gh orgtools team-list -- list the organization's teams
+#
+# SYNOPSIS
+#   gh orgtools team-list [--org=ORG]
+#
+# DESCRIPTION
+#   Lists the organizations teams and their IDs.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/teams#list-teams
+team-list() {
+  local org query format=plain output=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  query='.[] | [.slug, .id] | @tsv'
+
+  output+=("slug"$'\t'"id")
+
+  while read -r line; do
+    output+=("$line")
+  done < <(_gh api --paginate --jq "$query" "orgs/$org/teams")
+
+  {
+    printf "%s\n" "${output[@]}"
+    echo
+  } | _format_output "$format"
+}
+
+# Usage: gh orgtools team-get-id [--org=ORG] <TEAM_SLUG>
+#
+# NAME
+#   gh orgtools team-get-id -- get the GitHub ID for the given team
+#
+# SYNOPSIS
+#   gh orgtools team-get-id [--org=ORG]
+#
+# DESCRIPTION
+#   Gets the GitHub ID for the given team. Useful if you need an ID for
+#   a GitHub API action (i.e. assigning teams to a repo).
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/teams#get-a-team-by-name
+team-get-id() {
+  local org slug query
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  if [[ $# -ne 1 ]]; then
+    _warn "error: must specify team slug"
+    return 1
+  fi
+
+  slug="$1"
+  query=".id"
+
+  _gh api --jq "$query" "orgs/$org/teams/$slug"
 }
 
 # If no arg was passed, show the help text
