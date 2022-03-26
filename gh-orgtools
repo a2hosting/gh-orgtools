@@ -413,6 +413,11 @@ user-invite() {
     esac
   done
 
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
   api_args+=("-X POST")
 
   if [[ $# -ne 1 ]]; then
