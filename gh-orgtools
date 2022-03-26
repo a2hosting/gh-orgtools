@@ -384,7 +384,7 @@ user-list() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/orgs#create-an-organization-invitation
 user-invite() {
-  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query role=direct_member team_ids line api_args=()
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query role=direct_member team_ids email line api_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -430,20 +430,44 @@ user-invite() {
     return 1
   fi
 
-  api_args+=("-f \"email=$1\"")
+  email="$1"
 
-  if [[ "${role_id-}" ]]; then
-    api_args+=("-f \"role=$role\"")
+  if [[ -z "${email-}" ]]; then
+    _warn "error: must specify email"
+    return 1
   fi
 
-  # TODO: this does not work :(
-  if [[ "${team_ids-}" ]]; then
-    while read -r line; do
-      api_args+=("-f \"team_id[]=$line\"")
-    done < <(tr ',' $'\n' <<< "$team_ids")
-  fi
+  # TODO: Someday this can avoid a jq dependency and use
+  # -f team_id[]=ID1 -f team_id[]=ID2 etc
+  #
+  # https://github.com/cli/cli/issues/1484
+  if false; then
+    api_args+=("-f \"email=$1\"")
 
-  echo _gh api "${api_args[@]}" "orgs/$org/invitations"
+    if [[ "${role-}" ]]; then
+      api_args+=("-f \"role=$role\"")
+    fi
+
+    if [[ "${team_ids-}" ]]; then
+      while read -r line; do
+        api_args+=("-f \"team_ids[]=$line\"")
+      done < <(tr ',' $'\n' <<< "$team_ids")
+    fi
+
+    echo _gh api "${api_args[@]}" "orgs/$org/invitations"
+  else
+    jq --null-input \
+      --arg     email    "$email" \
+      --arg     role     "$role" \
+      --argjson team_ids "[${team_ids-}]" \
+      '{ $email, $role, $team_ids }' |
+
+      _gh api \
+        -H "Accept: application/vnd.github.v3+json" \
+        -X POST \
+        --input - \
+        "orgs/$org/invitations"
+  fi
 }
 
 # Usage: gh orgtools user-remove [--org=ORG] <USERNAME>
