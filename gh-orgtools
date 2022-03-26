@@ -11,16 +11,16 @@
 #   FIXME
 #
 # COMMANDS
-#   help                   - prints documentation gh-orgtools and its commands
-#   repo-list              - list an organizations repositories
-#   repo-create            - create a new repository in the organization
-#   repo-grant-team-access - grant an organization team access to the given repoitories
-#   user-list              - list users in the organization
-#   user-invite            - invite users to join the organization
-#   user-remove            - remove users from the organization
-#   user-get               - get information about the given user
-#   team-list              - list the organization's teams
-#   team-get-id            - get GitHub ID for the given team
+#   help             - prints documentation gh-orgtools and its commands
+#   repo-list        - list an organizations repositories
+#   repo-create      - create a new repository in the organization
+#   user-list        - list users in the organization
+#   user-invite      - invite users to join the organization
+#   user-remove      - remove users from the organization
+#   user-get         - get information about the given user
+#   team-list        - list the organization's teams
+#   team-get-id      - get GitHub ID for the given team
+#   team-add-to-repo - grant an organization team access to the given repository
 #
 # GLOBAL OPTIONS
 #   -V, --version
@@ -115,7 +115,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list|user-invite|user-remove|team-list|team-get-id)
+    repo-list|user-list|user-invite|user-remove|team-list|team-get-id|team-add-to-repo)
       "$cmd" "$@"
       return $?
       ;;
@@ -625,6 +625,100 @@ team-get-id() {
   query=".id"
 
   _gh api --jq "$query" "orgs/$org/teams/$slug"
+}
+
+# Usage: gh orgtools team-add-to-repo [--org=ORG] <REPO>
+#
+# NAME
+#   gh orgtools team-add-to-repo -- list users in the organization
+#
+# SYNOPSIS
+#   gh orgtools team-add-to-repo [--org=ORG] <REPO>
+#
+# DESCRIPTION
+#   Adds an organization team to a repository.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+#   --permission=PERMISSION
+#     The permission to grant the team on this repository. Default "push". Can
+#     be one of:
+#       * pull
+#         team members can pull, but not push to or administer this
+#         repository.
+#       * push
+#         team members can pull and push, but not administer this repository.
+#       * admin
+#         team members can pull, push and administer this repository.
+#       * maintain
+#         team members can manage the repository without access to sensitive
+#         or destructive actions. Recommended for project managers. Only
+#         applies to repositories owned by organizations.
+#       * triage
+#         team members can proactively manage issues and pull requests without
+#         write access. Recommended for contributors who triage a repository.
+#         Only applies to repositories owned by organizations.
+#       * custom repository role name
+#         A custom repository role if the owning organization has defined any.
+#
+#     If no permission is specified, the team's permission attribute will be
+#     used to determine what permission to grant the team on this repository.
+#
+#   --format=FORMAT
+#     Output format, one of plain, tsv, csv, or json. Default: plain.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/teams#add-or-update-team-repository-permissions
+team-add-to-repo() {
+  local org team_slug repo permission=push api_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
+      --permission=*)
+        permission="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  if [[ -z "${permission-}" ]]; then
+    _warn "error: must specify --permission"
+    return 1
+  fi
+
+  api_args+=("-f \"permission=$permission\"")
+
+  echo _gh api -X PUT "${api_args[@]}" "orgs/$org/teams/$team_slug/repos/$org/$repo"
 }
 
 # If no arg was passed, show the help text
