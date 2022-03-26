@@ -704,6 +704,9 @@ team-get-id() {
 team-add-to-repo() {
   local org="${GH_ORGTOOLS_DEFAULT_ORG-}" team_slug repo permission=push api_args=()
 
+  _warn "this command is not ready yet"
+  return 1
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -h | --help)
