@@ -228,7 +228,7 @@ repo-list() {
         shift
         ;;
       -?*)
-        _warn "$(_program_name) repo-list: invalid option \`$1'"
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
         return 1
         ;;
       *)
@@ -306,7 +306,7 @@ user-list() {
         shift
         ;;
       -?*)
-        _warn "$(_program_name) user-list: invalid option \`$1'"
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
         return 1
         ;;
       *)
@@ -404,7 +404,7 @@ user-invite() {
         shift
         ;;
       -?*)
-        _warn "$(_program_name) user-list: invalid option \`$1'"
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
         return 1
         ;;
       *)
