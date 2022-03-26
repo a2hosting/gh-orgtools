@@ -501,7 +501,7 @@ user-remove() {
 
   user="$1"
 
-  echo _gh api -X DELETE "orgs/$org/members/$user"
+  _gh api -X DELETE "orgs/$org/members/$user"
 }
 
 # Usage: gh orgtools team-list [--org=ORG]
