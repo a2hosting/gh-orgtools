@@ -13,7 +13,6 @@
 # COMMANDS
 #   help             - prints documentation gh-orgtools and its commands
 #   repo-list        - list an organizations repositories
-#   repo-create      - create a new repository in the organization
 #   user-list        - list users in the organization
 #   user-invite      - invite users to join the organization
 #   user-remove      - remove users from the organization
