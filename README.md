@@ -2,6 +2,10 @@
 
 gh-extension for working with your GitHub org.
 
+**!! ALPHA SOFTWARE !!**
+
+This project is still in active development --- use at your own risk!
+
 ## Installation
 
 First, install `gh` from <https://github.com/cli/cli/releases/latest> (`brew
