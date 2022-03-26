@@ -29,6 +29,11 @@
 #   -h, --help
 #     Show help text for the main gh-orgtools command.
 #
+# ENVIRONMENT VARIABLES
+#   GH_ORGTOOLS_DEFAULT_ORG: default organization to use with `gh orgtools`
+#   commands. Useful if you only work with one org and want to avoid typing
+#   `--org=` with each command.
+#
 # REPORTING BUGS
 #   Issues can be reported on GitHub:
 #
@@ -207,7 +212,7 @@ help() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/repos#list-organization-repositories
 repo-list() {
-  local org query output=() format=plain
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query output=() format=plain
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -281,7 +286,7 @@ repo-list() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/orgs#list-organization-members
 user-list() {
-  local org query line name names=no format=plain output=()
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query line name names=no format=plain output=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -379,7 +384,7 @@ user-list() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/orgs#create-an-organization-invitation
 user-invite() {
-  local org query role=direct_member team_ids line api_args=()
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query role=direct_member team_ids line api_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -458,7 +463,7 @@ user-invite() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/orgs#remove-an-organization-member
 user-remove() {
-  local org user
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" user
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -517,7 +522,7 @@ user-remove() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/teams#list-teams
 team-list() {
-  local org query format=plain output=()
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" query format=plain output=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -585,7 +590,7 @@ team-list() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/teams#get-a-team-by-name
 team-get-id() {
-  local org slug query
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" slug query
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -672,7 +677,7 @@ team-get-id() {
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/teams#add-or-update-team-repository-permissions
 team-add-to-repo() {
-  local org team_slug repo permission=push api_args=()
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" team_slug repo permission=push api_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
