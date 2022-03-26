@@ -753,11 +753,6 @@ team-add-to-repo() {
     return 1
   fi
 
-  if [[ -z "${permission-}" ]]; then
-    _warn "error: must specify --permission"
-    return 1
-  fi
-
   if [[ $# -ne 2 ]]; then
     _warn "error: must specify team and repository, i.e:"
     _warn
@@ -778,7 +773,9 @@ team-add-to-repo() {
     return 1
   fi
 
-  api_args+=(-f "permission=$permission")
+  if [[ "${permission-}" ]]; then
+    api_args+=(-f "permission=$permission")
+  fi
 
   _gh api -X PUT "${api_args[@]}" "orgs/$org/teams/$team_slug/repos/$org/$repo"
 }
