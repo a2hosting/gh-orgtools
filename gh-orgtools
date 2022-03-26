@@ -115,7 +115,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list)
+    repo-list|user-list|user-invite)
       "$cmd" "$@"
       return $?
       ;;
@@ -345,6 +345,95 @@ user-list() {
   } | _format_output "$format"
 }
 
+# Usage: gh orgtools user-invite [--org=ORG] <EMAIL>
+#
+# NAME
+#   gh orgtools user-invite --
+#
+# SYNOPSIS
+#   gh orgtools user-invite [--org=ORG] <EMAIL>
+#
+# DESCRIPTION
+#   Invite users to join the organization.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+#   --role=ROLE
+#     Role for new member. Default "direct_member". Options are:
+#       * admin
+#         Organization owners with full administrative rights to the
+#         organization and complete access to all repositories and teams.
+#       * direct_member
+#         Non-owner organization members with ability to see other members and
+#         join teams by invitation.
+#       * billing_manager
+#         Non-owner organization members with ability to manage the billing
+#         settings of your organization.
+#
+#   --team-ids=ID1[,ID2...]
+#     One or more Team IDs to add the user to. Use `gh orgtools team-list` or
+#     `gh orgtools team-get` to get team IDs.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/orgs#create-an-organization-invitation
+user-invite() {
+  local org query role=direct_member team_ids line api_args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      --role=*)
+        role="${1#*=}"
+        shift
+        ;;
+      --team-ids=*)
+        team_ids="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) user-list: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  api_args+=("-X POST")
+
+  if [[ $# -ne 1 ]]; then
+    _warn "must specify one email address"
+    return 1
+  fi
+
+  api_args+=("-f \"email=$1\"")
+
+  if [[ "${role_id-}" ]]; then
+    api_args+=("-f \"role=$role\"")
+  fi
+
+  if [[ "${team_ids-}" ]]; then
+    while read -r line; do
+      api_args+=("-f \"team_id[]=$line\"")
+    done < <(tr ',' $'\n' <<< "$team_ids")
+  fi
+
+  echo _gh api -X POST "${api_args[@]}" "orgs/$org/invitations"
+}
 
 # If no arg was passed, show the help text
 main "${@:-help}"
