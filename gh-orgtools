@@ -115,7 +115,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list|user-invite)
+    repo-list|user-list|user-invite|user-remove)
       "$cmd" "$@"
       return $?
       ;;
@@ -433,6 +433,65 @@ user-invite() {
   fi
 
   echo _gh api -X POST "${api_args[@]}" "orgs/$org/invitations"
+}
+
+# Usage: gh orgtools user-remove [--org=ORG] <USERNAME>
+#
+# NAME
+#   gh orgtools user-remove -- remove users from the organization
+#
+# SYNOPSIS
+#   gh orgtools user-remove [--org=ORG] <USERNAME>
+#
+# DESCRIPTION
+#   Remove users from the organization.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/orgs#remove-an-organization-member
+user-remove() {
+  local org user
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  if [[ $# -ne 1 ]]; then
+    _warn "must specify username"
+    return 1
+  fi
+
+  user="$1"
+
+  echo _gh api -X DELETE "orgs/$org/members/$user"
 }
 
 # If no arg was passed, show the help text
