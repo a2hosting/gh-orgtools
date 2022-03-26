@@ -657,13 +657,13 @@ team-get-id() {
   _gh api --jq "$query" "orgs/$org/teams/$slug"
 }
 
-# Usage: gh orgtools team-add-to-repo [--org=ORG] <REPO>
+# Usage: gh orgtools team-add-to-repo [--org=ORG] <TEAM> <REPO>
 #
 # NAME
-#   gh orgtools team-add-to-repo -- list users in the organization
+#   gh orgtools team-add-to-repo -- grant an organization team access to the given repository
 #
 # SYNOPSIS
-#   gh orgtools team-add-to-repo [--org=ORG] <REPO>
+#   gh orgtools team-add-to-repo [--org=ORG] <TEAM> <REPO>
 #
 # DESCRIPTION
 #   Adds an organization team to a repository.
@@ -703,9 +703,6 @@ team-get-id() {
 #   https://docs.github.com/en/rest/reference/teams#add-or-update-team-repository-permissions
 team-add-to-repo() {
   local org="${GH_ORGTOOLS_DEFAULT_ORG-}" team_slug repo permission=push api_args=()
-
-  _warn "this command is not ready yet"
-  return 1
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -749,9 +746,29 @@ team-add-to-repo() {
     return 1
   fi
 
+  if [[ $# -ne 2 ]]; then
+    _warn "error: must specify team and repository, i.e:"
+    _warn
+    _warn "$(_program_name) ${FUNCNAME[0]} orgname reponame"
+    return 1
+  fi
+
+  team_slug="$1"
+  repo="$2"
+
+  if [[ -z "${repo-}" ]]; then
+    _warn "error: must specify repository"
+    return 1
+  fi
+
+  if [[ -z "${team_slug-}" ]]; then
+    _warn "error: must specify team"
+    return 1
+  fi
+
   api_args+=(-f "permission=$permission")
 
-  echo _gh api -X PUT "${api_args[@]}" "orgs/$org/teams/$team_slug/repos/$org/$repo"
+  _gh api -X PUT "${api_args[@]}" "orgs/$org/teams/$team_slug/repos/$org/$repo"
 }
 
 # If no arg was passed, show the help text
