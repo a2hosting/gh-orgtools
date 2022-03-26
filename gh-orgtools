@@ -114,6 +114,18 @@ _gh() {
   gh "$@"
 }
 
+# Run `jq` commands, checking first if the tool is installed.
+#
+# $@ - args to pass to `jq`
+_jq() {
+  if ! type jq &> /dev/null; then
+    _warn "error: \`jq' not found. Install from https://stedolan.github.io/jq/ (\`brew install jq' on macOS)."
+    return 127
+  fi
+
+  jq "$@"
+}
+
 # Main program
 main() {
   local cmd="${1:-}"
@@ -456,7 +468,7 @@ user-invite() {
 
     echo _gh api "${api_args[@]}" "orgs/$org/invitations"
   else
-    jq --null-input \
+    _jq --null-input \
       --arg     email    "$email" \
       --arg     role     "$role" \
       --argjson team_ids "[${team_ids-}]" \
