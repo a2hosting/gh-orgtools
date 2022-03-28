@@ -13,13 +13,13 @@
 # COMMANDS
 #   help             - prints documentation gh-orgtools and its commands
 #   repo-list        - list an organizations repositories
-#   user-list        - list users in the organization
-#   user-invite      - invite users to join the organization
-#   user-remove      - remove users from the organization
-#   user-get         - get information about the given user
-#   team-list        - list the organization's teams
-#   team-get-id      - get GitHub ID for the given team
 #   team-add-to-repo - grant an organization team access to the given repository
+#   team-get-id      - get GitHub ID for the given team
+#   team-list        - list the organization's teams
+#   user-get         - get information about the given user
+#   user-invite      - invite users to join the organization
+#   user-list        - list users in the organization
+#   user-remove      - remove users from the organization
 #
 # GLOBAL OPTIONS
 #   -V, --version
