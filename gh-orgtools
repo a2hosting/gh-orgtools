@@ -428,7 +428,7 @@ user-get() {
 # Usage: gh orgtools user-invite [--org=ORG] <EMAIL>
 #
 # NAME
-#   gh orgtools user-invite --
+#   gh orgtools user-invite -- invite users to join the organization
 #
 # SYNOPSIS
 #   gh orgtools user-invite [--org=ORG] <EMAIL>
