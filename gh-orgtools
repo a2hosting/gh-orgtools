@@ -131,7 +131,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list|user-invite|user-remove|team-list|team-get-id|team-add-to-repo)
+    repo-list|user-list|user-invite|user-remove|user-get|team-list|team-get-id|team-add-to-repo)
       "$cmd" "$@"
       return $?
       ;;
@@ -359,6 +359,70 @@ user-list() {
     printf "%s\n" "${output[@]}"
     echo
   } | _format_output "$format"
+}
+
+# Usage: gh orgtools user-get [--org=ORG] [USERNAME]
+#
+# NAME
+#   gh orgtools user-get -- get information about a user
+#
+# SYNOPSIS
+#   gh orgtools user-get [--org=ORG] [USERNAME]
+#
+# DESCRIPTION
+#   Get information about a user. If a user is not specfied, returns
+#   information about the authenticated `gh` user.
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/users#get-a-user
+user-get() {
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" format=plain api_url=user
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  if [[ $# -eq 1 ]]; then
+    api_url="users/$1"
+  elif [[ $# -gt 1 ]]; then
+    _warn "$(_program_name) ${FUNCNAME[0]}: specify a single user"
+    return 1
+  fi
+
+  _gh api "$api_url"
 }
 
 # Usage: gh orgtools user-invite [--org=ORG] <EMAIL>
