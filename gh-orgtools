@@ -531,6 +531,9 @@ user-invite() {
 
     echo _gh api "${api_args[@]}" "orgs/$org/invitations"
   else
+    # shellcheck disable=SC2016
+    # The single-quoted vars below are by design, they are jq vars, not
+    # bash vars.
     _jq --null-input \
       --arg     email    "$email" \
       --arg     role     "$role" \
