@@ -20,6 +20,7 @@ gh extension install a2hosting/gh-orgtools
 - `gh orgtools team-add-to-repo` - grant an organization team access to the given repository
 - `gh orgtools team-get-id`      - get GitHub ID for the given team
 - `gh orgtools team-list`        - list the organization's teams
+- `gh orgtools team-repo-list`   - list a team's repositories
 - `gh orgtools user-get`         - get information about the given user
 - `gh orgtools user-invite`      - invite users to join the organization
 - `gh orgtools user-list`        - list users in the organization
@@ -35,4 +36,4 @@ Issues can be reported on GitHub:
 
 ## License
 
-MIT License - see [`LICENSE`](./LICENSE) in this repo.
+MIT License - see [`LICENSE`](./LICENSE) in this repository.

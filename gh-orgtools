@@ -16,6 +16,7 @@
 #   team-add-to-repo - grant an organization team access to the given repository
 #   team-get-id      - get GitHub ID for the given team
 #   team-list        - list the organization's teams
+#   team-repo-list   - list a team's repositories
 #   user-get         - get information about the given user
 #   user-invite      - invite users to join the organization
 #   user-list        - list users in the organization
@@ -131,7 +132,7 @@ main() {
   shift
 
   case "$cmd" in
-    repo-list|user-list|user-invite|user-remove|user-get|team-list|team-get-id|team-add-to-repo)
+    repo-list|user-list|user-invite|user-remove|user-get|team-list|team-get-id|team-add-to-repo|team-repo-list)
       "$cmd" "$@"
       return $?
       ;;
@@ -823,6 +824,81 @@ team-add-to-repo() {
   fi
 
   _gh api -X PUT "${api_args[@]}" "orgs/$org/teams/$team_slug/repos/$org/$repo"
+}
+
+# Usage: gh orgtools team-repo-list [--org=ORG] <TEAM>
+#
+# NAME
+#   gh orgtools team-repo-list -- list repositories for the given team
+#
+# SYNOPSIS
+#   gh orgtools team-repo-list [--org=ORG] <TEAM>
+#
+# DESCRIPTION
+#   List repositories for the given team
+#
+# OPTIONS
+#   --org=ORG
+#     Organization name. Required.
+#
+#   --format=FORMAT
+#     Output format, one of plain, tsv, csv, or json. Default: plain.
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/teams/teams?apiVersion=2022-11-28#list-team-repositories
+team-repo-list() {
+  local org="${GH_ORGTOOLS_DEFAULT_ORG-}" team_slug query
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help)
+        help "${FUNCNAME[0]}" "$([[ "$1" == "-h" ]] && echo 1)"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      --org=*)
+        org="${1#*=}"
+        shift
+        ;;
+      --format=*)
+        format="${1#*=}"
+        shift
+        ;;
+      -?*)
+        _warn "$(_program_name) ${FUNCNAME[0]}: invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -z "${org-}" ]]; then
+    _warn "error: must specify --org"
+    return 1
+  fi
+
+  if [[ $# -ne 1 ]]; then
+    _warn "error: must specify team, i.e:"
+    _warn
+    _warn "$(_program_name) ${FUNCNAME[0]} teamname"
+    return 1
+  fi
+
+  team_slug="$1"
+
+  query='.[].name'
+
+  if [[ -z "${team_slug-}" ]]; then
+    _warn "error: must specify team"
+    return 1
+  fi
+
+  _gh api --jq "$query" --paginate "orgs/$org/teams/$team_slug/repos"
 }
 
 # If no arg was passed, show the help text
