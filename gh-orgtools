@@ -512,40 +512,19 @@ user-invite() {
     return 1
   fi
 
-  # TODO: Someday this can avoid a jq dependency and use
-  # -f team_id[]=ID1 -f team_id[]=ID2 etc
-  #
-  # https://github.com/cli/cli/issues/1484
-  if false; then
-    api_args+=(-f "email=$1")
+  api_args+=(-f "email=$1")
 
-    if [[ "${role-}" ]]; then
-      api_args+=(-f "role=$role")
-    fi
-
-    if [[ "${team_ids-}" ]]; then
-      while read -r line; do
-        api_args+=(-f "team_ids[]=$line")
-      done < <(tr ',' $'\n' <<< "$team_ids")
-    fi
-
-    echo _gh api "${api_args[@]}" "orgs/$org/invitations"
-  else
-    # shellcheck disable=SC2016
-    # The single-quoted vars below are by design, they are jq vars, not
-    # bash vars.
-    _jq --null-input \
-      --arg     email    "$email" \
-      --arg     role     "$role" \
-      --argjson team_ids "[${team_ids-}]" \
-      '{ $email, $role, $team_ids }' |
-
-      _gh api \
-        -H "Accept: application/vnd.github.v3+json" \
-        -X POST \
-        --input - \
-        "orgs/$org/invitations"
+  if [[ "${role-}" ]]; then
+    api_args+=(-f "role=$role")
   fi
+
+  if [[ "${team_ids-}" ]]; then
+    while read -r line; do
+      api_args+=(-f "team_ids[]=$line")
+    done < <(tr ',' $'\n' <<< "$team_ids")
+  fi
+
+  _gh api "${api_args[@]}" "orgs/$org/invitations"
 }
 
 # Usage: gh orgtools user-remove [--org=ORG] <USERNAME>
