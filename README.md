@@ -36,4 +36,4 @@ Issues can be reported on GitHub:
 
 ## License
 
-MIT License - see [`LICENSE`](./LICENSE) in this repo.
+MIT License - see [`LICENSE`](./LICENSE) in this repository.
